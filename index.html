@@ -1,576 +1,951 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <base target="_top">
-  <meta charset="UTF-8">
-  <title>Pedidos</title>
-  <style>
-    :root{
-      --naranja:#e0651a;
-      --naranja-oscuro:#b84e10;
-      --verde:#2f9e44;
-      --fondo:#faf6f1;
-      --texto:#2b2320;
-      --gris:#8a8078;
-      --borde:#e8ddd1;
-    }
-    *{box-sizing:border-box;}
-    body{
-      font-family:'Segoe UI', Roboto, Arial, sans-serif;
-      background:var(--fondo);
-      color:var(--texto);
-      margin:0;
-      padding:0 0 90px 0;
-    }
-    header{
-      background:var(--naranja);
-      color:#fff;
-      padding:18px 16px;
-      text-align:center;
-      box-shadow:0 2px 6px rgba(0,0,0,.15);
-    }
-    header h1{margin:0;font-size:1.3em;}
-    header p{margin:4px 0 0;font-size:.85em;opacity:.9;}
-    .contenedor{
-      max-width:600px;
-      margin:0 auto;
-      padding:16px;
-    }
-    .categoria{
-      margin-top:22px;
-      margin-bottom:10px;
-      font-size:1.05em;
-      font-weight:600;
-      color:var(--naranja-oscuro);
-      border-bottom:2px solid var(--borde);
-      padding-bottom:4px;
-    }
-    .producto{
-      background:#fff;
-      border:1px solid var(--borde);
-      border-radius:12px;
-      padding:10px;
-      margin-bottom:10px;
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-    .producto img{
-      width:64px;
-      height:64px;
-      object-fit:cover;
-      border-radius:10px;
-      flex-shrink:0;
-      background:#f1e9de;
-    }
-    .producto-info{flex:1;min-width:0;}
-    .producto-info b{display:block;font-size:1em;}
-    .producto-info span{color:var(--gris);font-size:.88em;}
-    .btn-agregar{
-      background:var(--naranja);
-      color:#fff;
-      border:none;
-      border-radius:8px;
-      padding:9px 14px;
-      font-size:.9em;
-      cursor:pointer;
-      white-space:nowrap;
-    }
-    .btn-agregar:active{background:var(--naranja-oscuro);}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asados Artesanales MTR — Menú del día</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --smoke:#1B1410;
+    --wood:#2B2018;
+    --wood-light:#3A2C1F;
+    --cream:#F6EEDD;
+    --cream-dim:#D9CCB0;
+    --ember:#DD5225;
+    --ember-dark:#A6371A;
+    --gold:#E7A73C;
+    --line:rgba(246,238,221,0.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--smoke);
+    color:var(--cream);
+    font-family:'Work Sans', sans-serif;
+    line-height:1.5;
+    overflow-x:hidden;
+  }
+  h1,h2,h3{font-family:'Anton', sans-serif; font-weight:400; letter-spacing:0.01em;}
+  .eyebrow{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.22em;
+    font-size:0.72rem;
+    color:var(--gold);
+  }
 
-    /* Barra flotante del carrito */
-    .barra-carrito{
-      position:fixed;
-      bottom:0;left:0;right:0;
-      background:var(--naranja-oscuro);
-      color:#fff;
-      padding:12px 16px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      cursor:pointer;
-      box-shadow:0 -2px 8px rgba(0,0,0,.2);
-    }
-    .barra-carrito b{font-size:1.05em;}
-    .barra-carrito span{font-size:.85em;opacity:.9;}
+  /* Char/grill mark signature texture */
+  .char-rule{
+    height:14px;
+    width:100%;
+    background-image: repeating-linear-gradient(45deg, transparent 0 10px, var(--ember) 10px 11.5px, transparent 11.5px 22px),
+                       repeating-linear-gradient(-45deg, transparent 0 10px, var(--gold) 10px 11.2px, transparent 11.2px 22px);
+    opacity:0.55;
+    mix-blend-mode:screen;
+  }
 
-    /* Modales */
-    .overlay{
-      display:none;
-      position:fixed;inset:0;
-      background:rgba(0,0,0,.45);
-      z-index:50;
-      align-items:flex-end;
-      justify-content:center;
-    }
-    .overlay.activo{display:flex;}
-    .hoja{
-      background:#fff;
-      width:100%;
-      max-width:600px;
-      border-radius:16px 16px 0 0;
-      padding:18px;
-      max-height:85vh;
-      overflow-y:auto;
-      animation:subir .2s ease-out;
-    }
-    @keyframes subir{
-      from{transform:translateY(30px);opacity:0;}
-      to{transform:translateY(0);opacity:1;}
-    }
-    .hoja h2{margin-top:0;font-size:1.1em;color:var(--naranja-oscuro);}
-    .cerrar{
-      float:right;
-      background:none;
-      border:none;
-      font-size:1.3em;
-      color:var(--gris);
-      cursor:pointer;
-    }
-    .imagen-modal{
-      width:100%;
-      max-height:160px;
-      object-fit:cover;
-      border-radius:10px;
-      margin-bottom:12px;
-      background:#f1e9de;
-    }
-    .campo{margin-bottom:14px;}
-    .campo label{display:block;font-size:.85em;color:var(--gris);margin-bottom:5px;}
-    .opciones-acomp{display:flex;gap:8px;}
-    .opciones-acomp label{
-      flex:1;
-      border:1px solid var(--borde);
-      border-radius:8px;
-      padding:8px;
-      text-align:center;
-      font-size:.85em;
-      cursor:pointer;
-      color:var(--texto);
-    }
-    .opciones-acomp input{display:none;}
-    .opciones-acomp label.seleccionado{
-      border-color:var(--naranja);
-      background:#fff3ea;
-      font-weight:700;
-    }
-    .cantidad-selector{
-      display:flex;align-items:center;gap:12px;
-    }
-    .cantidad-selector button{
-      width:36px;height:36px;
-      border-radius:50%;
-      border:1px solid var(--borde);
-      background:#fff;
-      font-size:1.1em;
-      cursor:pointer;
-    }
-    .cantidad-selector span{min-width:24px;text-align:center;font-weight:600;}
-    .btn-confirmar{
-      width:100%;
-      background:var(--naranja);
-      color:#fff;
-      border:none;
-      border-radius:10px;
-      padding:13px;
-      font-size:1em;
-      font-weight:600;
-      cursor:pointer;
-      margin-top:6px;
-    }
-    .btn-confirmar:disabled{background:#d9cfc2;cursor:not-allowed;}
+  /* HEADER / NAV */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(27,20,16,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-wrap{
+    max-width:1100px; margin:0 auto; padding:14px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{
+    font-family:'Anton', sans-serif;
+    font-size:1.15rem;
+    letter-spacing:0.02em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .brand span{color:var(--ember);}
+  .nav-cta{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    background:var(--ember);
+    color:var(--cream);
+    padding:10px 18px;
+    border-radius:2px;
+    text-decoration:none;
+    transition:background 0.2s ease, transform 0.15s ease;
+  }
+  .nav-cta:hover{background:var(--ember-dark); transform:translateY(-1px);}
 
-    /* Carrito */
-    .item-carrito{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      padding:10px 0;
-      border-bottom:1px solid var(--borde);
-    }
-    .item-carrito .desc b{display:block;}
-    .item-carrito .desc span{color:var(--gris);font-size:.85em;}
-    .quitar{
-      background:none;
-      border:none;
-      color:#c0392b;
-      font-size:.85em;
-      cursor:pointer;
-      text-decoration:underline;
-    }
-    .total-linea{
-      display:flex;justify-content:space-between;
-      font-size:1.15em;font-weight:700;
-      margin-top:14px;padding-top:10px;
-      border-top:2px solid var(--borde);
-    }
-    .entrega-opciones{display:flex;gap:10px;margin-bottom:14px;}
-    .entrega-opciones label{
-      flex:1;
-      border:1px solid var(--borde);
-      border-radius:10px;
-      padding:12px;
-      text-align:center;
-      cursor:pointer;
-    }
-    .entrega-opciones label.seleccionado{
-      border-color:var(--verde);
-      background:#eefaf0;
-      font-weight:600;
-    }
-    .entrega-opciones input{display:none;}
-    textarea, input[type=text]{
-      width:100%;
-      padding:10px;
-      border:1px solid var(--borde);
-      border-radius:8px;
-      font-size:.95em;
-      font-family:inherit;
-    }
-    .vacio{
-      text-align:center;
-      color:var(--gris);
-      padding:20px 0;
-    }
-    .aviso-guardado{
-      font-size:.8em;
-      color:var(--verde);
-      text-align:center;
-      margin-top:8px;
-      min-height:16px;
-    }
-  </style>
+  /* HERO */
+  .hero{
+    position:relative;
+    padding:76px 20px 56px;
+    text-align:center;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(221,82,37,0.25), transparent 60%),
+      var(--smoke);
+    border-bottom:1px solid var(--line);
+  }
+  .hero .eyebrow{display:block; margin-bottom:18px;}
+  .hero h1{
+    font-size:clamp(2.6rem, 9vw, 5rem);
+    line-height:0.94;
+    color:var(--cream);
+    text-shadow: 0 0 40px rgba(221,82,37,0.35);
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--ember);
+    display:block;
+  }
+  .hero p.tag{
+    font-family:'Oswald', sans-serif;
+    color:var(--cream-dim);
+    max-width:520px;
+    margin:22px auto 34px;
+    font-size:1.02rem;
+    letter-spacing:0.02em;
+  }
+  .hero-ctas{
+    display:flex; gap:14px; justify-content:center; flex-wrap:wrap;
+    margin-bottom:38px;
+  }
+  .btn{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    font-size:0.88rem;
+    padding:15px 28px;
+    border-radius:2px;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    transition:transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  .btn-primary{
+    background:var(--ember);
+    color:var(--cream);
+    box-shadow:0 8px 24px rgba(221,82,37,0.35);
+  }
+  .btn-primary:hover{background:var(--ember-dark); transform:translateY(-2px);}
+  .btn-ghost{
+    border:1px solid var(--cream-dim);
+    color:var(--cream);
+  }
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold); transform:translateY(-2px);}
+
+  .info-strip{
+    max-width:820px; margin:0 auto;
+    display:grid; grid-template-columns:repeat(3,1fr);
+    border:1px solid var(--line);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .info-strip div{
+    padding:16px 12px;
+    border-right:1px solid var(--line);
+    font-family:'Oswald', sans-serif;
+    font-size:0.82rem;
+  }
+  .info-strip div:last-child{border-right:none;}
+  .info-strip .label{
+    display:block; text-transform:uppercase; letter-spacing:0.12em;
+    color:var(--gold); font-size:0.66rem; margin-bottom:4px;
+  }
+
+  /* SECTIONS */
+  section{max-width:1100px; margin:0 auto; padding:70px 20px;}
+  .section-head{text-align:center; margin-bottom:44px;}
+  .section-head h2{font-size:clamp(2rem,5vw,2.8rem); color:var(--cream);}
+  .section-head .eyebrow{margin-bottom:10px;}
+
+  /* MENU GROUPS */
+  .menu-group{margin-bottom:56px;}
+  .menu-group-title{
+    display:flex; align-items:baseline; gap:14px;
+    margin-bottom:22px;
+  }
+  .menu-group-title h3{
+    font-size:1.7rem;
+    color:var(--ember);
+    white-space:nowrap;
+  }
+  .menu-group-title .rule{
+    flex:1; height:1px;
+    background:repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
+  }
+  .menu-items{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(260px,1fr));
+    gap:14px;
+  }
+  .item{
+    background:var(--wood);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:20px 22px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:14px;
+    position:relative;
+    overflow:hidden;
+    transition:border-color 0.2s ease, transform 0.15s ease;
+  }
+  .item:hover{border-color:var(--ember); transform:translateY(-2px);}
+  .item::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(45deg, transparent 0 8px, rgba(221,82,37,0.5) 8px 9px, transparent 9px 16px);
+    opacity:0;
+    transition:opacity 0.25s ease;
+    pointer-events:none;
+  }
+  .item:hover::before{opacity:0.08;}
+  .item-name{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:1.02rem;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    color:var(--cream);
+  }
+  .item-desc{
+    font-size:0.86rem;
+    color:var(--cream-dim);
+    margin-top:4px;
+  }
+  .item-price{
+    font-family:'Anton', sans-serif;
+    color:var(--gold);
+    font-size:1.25rem;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .item-price small{
+    display:block;
+    font-family:'Oswald', sans-serif;
+    font-size:0.6rem;
+    color:var(--cream-dim);
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    text-align:right;
+  }
+
+  /* DOMICILIO / RECOGER */
+  .modes{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:22px;
+  }
+  .mode-card{
+    background:var(--wood);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:32px 26px;
+  }
+  .mode-card .icon{font-size:1.8rem; margin-bottom:14px; display:block;}
+  .mode-card h3{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    font-size:1.1rem;
+    color:var(--gold);
+    margin-bottom:10px;
+  }
+  .mode-card p{color:var(--cream-dim); font-size:0.92rem;}
+
+  /* CONTACT / FOOTER */
+  footer{
+    background:var(--wood-light);
+    border-top:1px solid var(--line);
+    padding:60px 20px 30px;
+  }
+  .footer-wrap{
+    max-width:1100px; margin:0 auto;
+    display:grid;
+    grid-template-columns:1.2fr 1fr 1fr;
+    gap:36px;
+    margin-bottom:40px;
+  }
+  .footer-wrap h4{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    font-size:0.78rem;
+    color:var(--gold);
+    margin-bottom:14px;
+  }
+  .footer-wrap .brand{margin-bottom:14px;}
+  .footer-wrap p, .footer-wrap a{
+    color:var(--cream-dim);
+    font-size:0.92rem;
+    text-decoration:none;
+    display:block;
+    margin-bottom:6px;
+  }
+  .footer-wrap a:hover{color:var(--ember);}
+  .social-row{display:flex; gap:12px; margin-top:6px;}
+  .social-row a{
+    width:38px; height:38px;
+    border:1px solid var(--line);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--cream);
+    transition:border-color 0.2s ease, color 0.2s ease;
+  }
+  .social-row a:hover{border-color:var(--ember); color:var(--ember);}
+  .footer-bottom{
+    max-width:1100px; margin:0 auto;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+    text-align:center;
+    font-family:'Oswald', sans-serif;
+    font-size:0.75rem;
+    letter-spacing:0.08em;
+    color:var(--cream-dim);
+    text-transform:uppercase;
+  }
+
+  /* CART BUTTON ON ITEMS */
+  .item-add-row{display:flex; align-items:center; gap:10px; margin-top:10px;}
+  .qty-stepper{
+    display:flex; align-items:center; gap:8px;
+    background:var(--smoke);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:4px 8px;
+  }
+  .qty-stepper button{
+    background:none; border:none; color:var(--cream);
+    font-family:'Oswald', sans-serif; font-size:1rem;
+    width:22px; height:22px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .qty-stepper button:hover{color:var(--ember);}
+  .qty-stepper span{font-family:'Oswald', sans-serif; font-size:0.88rem; min-width:16px; text-align:center;}
+  .add-btn{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    font-size:0.72rem;
+    background:var(--ember);
+    color:var(--cream);
+    border:none;
+    padding:8px 14px;
+    border-radius:3px;
+    cursor:pointer;
+    transition:background 0.2s ease;
+  }
+  .add-btn:hover{background:var(--ember-dark);}
+  .add-btn.added{background:var(--gold); color:var(--wood);}
+
+  /* CART FLOAT BUTTON */
+  .cart-float{
+    position:fixed;
+    bottom:22px; left:22px;
+    background:var(--wood-light);
+    border:1px solid var(--gold);
+    color:var(--cream);
+    padding:14px 20px;
+    border-radius:30px;
+    display:flex; align-items:center; gap:10px;
+    text-decoration:none;
+    z-index:60;
+    cursor:pointer;
+    font-family:'Oswald', sans-serif;
+    font-size:0.85rem;
+    letter-spacing:0.04em;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);
+    transition:transform 0.15s ease;
+  }
+  .cart-float:hover{transform:translateY(-2px);}
+  .cart-float .badge{
+    background:var(--ember);
+    color:var(--cream);
+    border-radius:50%;
+    width:22px; height:22px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.75rem;
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+  }
+
+  /* OVERLAY + PANEL */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.6);
+    z-index:80;
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .overlay.open{display:flex;}
+  @media (min-width:640px){
+    .overlay{align-items:center;}
+  }
+  .panel{
+    background:var(--wood);
+    border:1px solid var(--line);
+    border-top:1px solid var(--gold);
+    border-radius:14px 14px 0 0;
+    width:100%;
+    max-width:520px;
+    max-height:85vh;
+    overflow-y:auto;
+    padding:26px 22px 22px;
+    position:relative;
+  }
+  @media (min-width:640px){
+    .panel{border-radius:10px; border-top:1px solid var(--line);}
+  }
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .panel-head h3{font-family:'Anton', sans-serif; font-size:1.4rem; color:var(--cream);}
+  .panel-close{
+    background:none; border:1px solid var(--line); color:var(--cream);
+    width:32px; height:32px; border-radius:50%;
+    cursor:pointer; font-size:1rem;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .panel-close:hover{border-color:var(--ember); color:var(--ember);}
+
+  .cart-line{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px;
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .cart-line-name{font-family:'Oswald', sans-serif; font-size:0.92rem; color:var(--cream);}
+  .cart-line-price{font-size:0.78rem; color:var(--cream-dim); margin-top:2px;}
+  .cart-line-remove{
+    background:none; border:none; color:var(--cream-dim);
+    cursor:pointer; font-size:0.75rem; text-decoration:underline;
+    margin-top:4px;
+  }
+  .cart-line-remove:hover{color:var(--ember);}
+  .cart-empty{color:var(--cream-dim); text-align:center; padding:30px 0; font-family:'Oswald', sans-serif;}
+  .cart-total{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 0 4px;
+    font-family:'Oswald', sans-serif;
+    font-size:1rem;
+  }
+  .cart-total strong{font-family:'Anton', sans-serif; color:var(--gold); font-size:1.3rem;}
+
+  .panel-actions{margin-top:18px; display:flex; flex-direction:column; gap:10px;}
+  .panel-actions .btn{width:100%; justify-content:center;}
+
+  /* MODE CHOICE */
+  .choice-row{display:flex; flex-direction:column; gap:12px; margin-top:6px;}
+  .choice-btn{
+    background:var(--smoke);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:18px;
+    display:flex; align-items:center; gap:14px;
+    cursor:pointer;
+    text-align:left;
+    color:var(--cream);
+    font-family:'Work Sans', sans-serif;
+    transition:border-color 0.2s ease;
+  }
+  .choice-btn:hover{border-color:var(--ember);}
+  .choice-btn .icon{font-size:1.6rem;}
+  .choice-btn .choice-title{font-family:'Oswald', sans-serif; font-weight:600; text-transform:uppercase; font-size:0.9rem; letter-spacing:0.03em;}
+  .choice-btn .choice-desc{font-size:0.8rem; color:var(--cream-dim); margin-top:3px;}
+
+  /* FORM */
+  .form-field{margin-bottom:16px;}
+  .form-field label{
+    display:block;
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    font-size:0.7rem;
+    color:var(--gold);
+    margin-bottom:7px;
+  }
+  .form-field input,
+  .form-field select,
+  .form-field textarea{
+    width:100%;
+    background:var(--smoke);
+    border:1px solid var(--line);
+    border-radius:5px;
+    padding:11px 12px;
+    color:var(--cream);
+    font-family:'Work Sans', sans-serif;
+    font-size:0.92rem;
+  }
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus{outline:none; border-color:var(--ember);}
+  .form-field textarea{resize:vertical; min-height:60px;}
+  .form-back{
+    background:none; border:none; color:var(--cream-dim);
+    font-family:'Oswald', sans-serif; font-size:0.78rem;
+    text-transform:uppercase; letter-spacing:0.05em;
+    cursor:pointer; margin-bottom:16px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .form-back:hover{color:var(--gold);}
+  .form-error{color:var(--ember); font-size:0.78rem; margin-top:-8px; margin-bottom:14px; display:none;}
+  .form-error.show{display:block;}
+
+  /* WHATSAPP FLOAT */
+  .wa-float{
+    position:fixed;
+    bottom:22px; right:22px;
+    background:var(--ember);
+    color:var(--cream);
+    width:58px; height:58px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 24px rgba(221,82,37,0.5);
+    text-decoration:none;
+    z-index:60;
+    animation:pulse 2.4s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 8px 24px rgba(221,82,37,0.5);}
+    50%{box-shadow:0 8px 30px rgba(221,82,37,0.85);}
+    100%{box-shadow:0 8px 24px rgba(221,82,37,0.5);}
+  }
+
+  @media (max-width:720px){
+    .info-strip{grid-template-columns:1fr; }
+    .info-strip div{border-right:none; border-bottom:1px solid var(--line); text-align:center;}
+    .info-strip div:last-child{border-bottom:none;}
+    .modes{grid-template-columns:1fr;}
+    .footer-wrap{grid-template-columns:1fr; gap:28px;}
+    .nav-cta span{display:none;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .wa-float{animation:none;}
+    *{transition:none !important;}
+  }
+</style>
 </head>
 <body>
 
-  <header>
-    <h1>🍢 Haz tu pedido</h1>
-    <p>Picadas, pinchos y culatas - Recoge en el punto o pide a domicilio</p>
-  </header>
+<header>
+  <div class="nav-wrap">
+    <div class="brand">ASADOS<span>MTR</span></div>
+    <a class="nav-cta" href="https://wa.me/573243331306?text=Hola%2C%20quiero%20hacer%20un%20pedido" target="_blank" rel="noopener">Pedir por WhatsApp</a>
+  </div>
+</header>
 
-  <div class="contenedor" id="catalogo"></div>
+<section class="hero" style="padding-top:76px;">
+  <span class="eyebrow">Barrio Obreros · Montería</span>
+  <h1>ASADOS ARTESANALES<em>MTR</em></h1>
+  <p class="tag">Carnes a la parrilla, picadas y pinchos hechos al carbón. Pide a domicilio o recoge en el punto — de lo mejor, de lo tradicional.</p>
+  <div class="hero-ctas">
+    <a class="btn btn-primary" href="https://wa.me/573243331306?text=Hola%2C%20quiero%20hacer%20un%20pedido" target="_blank" rel="noopener">Pedir por WhatsApp</a>
+    <a class="btn btn-ghost" href="#menu">Ver menú</a>
+  </div>
+  <div class="info-strip">
+    <div><span class="label">Dirección</span>Cra 12 #14-08, Barrio Obreros, diagonal al Zuletaso</div>
+    <div><span class="label">Horario</span>4:00 p. m. — 10:00 p. m.</div>
+    <div><span class="label">Domicilio</span>Costo según la zona</div>
+  </div>
+</section>
 
-  <div class="barra-carrito" id="barraCarrito" style="display:none" onclick="abrirCarrito()">
-    <span id="resumenBarra">0 productos</span>
-    <b id="totalBarra">$0</b>
+<div class="char-rule"></div>
+
+<section id="menu">
+  <div class="section-head">
+    <span class="eyebrow">Menú de hoy</span>
+    <h2>Delicias a la parrilla y más</h2>
   </div>
 
-  <!-- Modal: agregar producto -->
-  <div class="overlay" id="overlayProducto">
-    <div class="hoja">
-      <button class="cerrar" onclick="cerrarModal('overlayProducto')">✕</button>
-      <img class="imagen-modal" id="imagenProducto" src="" alt="">
-      <h2 id="tituloProducto">Producto</h2>
-
-      <div class="campo">
-        <label>Acompañante</label>
-        <div class="opciones-acomp" id="opcionesAcomp">
-          <label data-valor="Ninguno" class="seleccionado" onclick="elegirAcompanante('Ninguno')"><span>Ninguno</span></label>
-          <label data-valor="Bollos" onclick="elegirAcompanante('Bollos')"><span>Bollos</span></label>
-          <label data-valor="Patacones" onclick="elegirAcompanante('Patacones')"><span>Patacones</span></label>
-        </div>
+  <div class="menu-group">
+    <div class="menu-group-title"><h3>Picadas de chorizo</h3><div class="rule"></div></div>
+    <div class="menu-items">
+      <div class="item" data-name="Picada sencilla" data-price="7000">
+        <div><div class="item-name">Picada sencilla</div><div class="item-desc">Con patacón y bollo. Perfecta para disfrutar en cualquier momento.</div>
+        <div class="item-add-row"><button class="add-btn" onclick="addToCart(this)">Agregar</button></div></div>
+        <div class="item-price">$7.000</div>
       </div>
-
-      <div class="campo">
-        <label>Cantidad</label>
-        <div class="cantidad-selector">
-          <button onclick="cambiarCantidad(-1)">−</button>
-          <span id="cantidadActual">1</span>
-          <button onclick="cambiarCantidad(1)">+</button>
-        </div>
+      <div class="item" data-name="Picada doble" data-price="14000">
+        <div><div class="item-name">Picada doble</div><div class="item-desc">Con patacón y bollo. El doble de sabor, el doble de disfrute.</div>
+        <div class="item-add-row"><button class="add-btn" onclick="addToCart(this)">Agregar</button></div></div>
+        <div class="item-price">$14.000</div>
       </div>
-
-      <button class="btn-confirmar" onclick="confirmarAgregar()">Agregar al carrito</button>
+      <div class="item" data-name="Picada mega grande" data-price="20000">
+        <div><div class="item-name">Picada mega grande</div><div class="item-desc">Con patacón y bollo. Para los que disfrutan en grande.</div>
+        <div class="item-add-row"><button class="add-btn" onclick="addToCart(this)">Agregar</button></div></div>
+        <div class="item-price">$20.000<small>desde</small></div>
+      </div>
     </div>
   </div>
 
-  <!-- Modal: carrito -->
-  <div class="overlay" id="overlayCarrito">
-    <div class="hoja">
-      <button class="cerrar" onclick="cerrarModal('overlayCarrito')">✕</button>
-      <h2>Tu pedido</h2>
-      <div id="listaCarrito"></div>
-      <div class="total-linea">
+  <div class="menu-group">
+    <div class="menu-group-title"><h3>Chuletas</h3><div class="rule"></div></div>
+    <div class="menu-items">
+      <div class="item" data-name="Chuleta sencilla" data-price="10000">
+        <div><div class="item-name">Chuleta sencilla</div><div class="item-desc">Acompañada de yuca y ensalada.</div>
+        <div class="item-add-row"><button class="add-btn" onclick="addToCart(this)">Agregar</button></div></div>
+        <div class="item-price">$10.000</div>
+      </div>
+      <div class="item" data-name="Chuleta doble" data-price="15000">
+        <div><div class="item-name">Chuleta doble</div><div class="item-desc">Acompañada de yuca y ensalada.</div>
+        <div class="item-add-row"><button class="add-btn" onclick="addToCart(this)">Agregar</button></div></div>
+        <div class="item-price">$15.000</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-group">
+    <div class="menu-group-title"><h3>Asado de carne de res</h3><div class="rule"></div></div>
+    <div class="menu-items">
+      <div class="item" data-name="Asado de res" data-price="15000">
+        <div><div class="item-name">Asado de res</div><div class="item-desc">Acompañado de yuca y ensalada.</div>
+        <div class="item-add-row"><button class="add-btn" onclick="addToCart(this)">Agregar</button></div></div>
+        <div class="item-price">$15.000</div>
+      </div>
+      <div class="item" data-name="Asado de res grande" data-price="20000">
+        <div><div class="item-name">Asado de res grande</div><div class="item-desc">Acompañado de yuca y ensalada.</div>
+        <div class="item-add-row"><button class="add-btn" onclick="addToCart(this)">Agregar</button></div></div>
+        <div class="item-price">$20.000</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-group">
+    <div class="menu-group-title"><h3>Pinchos</h3><div class="rule"></div></div>
+    <div class="menu-items">
+      <div class="item" data-name="Pinchos de res" data-price="8000">
+        <div><div class="item-name">Pinchos de res</div>
+        <div class="item-add-row"><button class="add-btn" onclick="addToCart(this)">Agregar</button></div></div>
+        <div class="item-price">$8.000</div>
+      </div>
+      <div class="item" data-name="Pinchos de cerdo" data-price="8000">
+        <div><div class="item-name">Pinchos de cerdo</div>
+        <div class="item-add-row"><button class="add-btn" onclick="addToCart(this)">Agregar</button></div></div>
+        <div class="item-price">$8.000</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-group" style="margin-bottom:0;">
+    <div class="menu-group-title"><h3>Bebidas</h3><div class="rule"></div></div>
+    <div class="menu-items">
+      <div class="item">
+        <div><div class="item-name">Refrescantes</div><div class="item-desc">Frías y sabrosas. Pregunta por los sabores disponibles.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="char-rule"></div>
+
+<section>
+  <div class="section-head">
+    <span class="eyebrow">Cómo pedir</span>
+    <h2>Domicilio o punto de venta</h2>
+  </div>
+  <div class="modes">
+    <div class="mode-card">
+      <span class="icon">🛵</span>
+      <h3>A domicilio</h3>
+      <p>Te lo llevamos hasta tu casa. El costo del domicilio depende de la zona — te confirmamos el valor por WhatsApp al hacer tu pedido.</p>
+    </div>
+    <div class="mode-card">
+      <span class="icon">🏠</span>
+      <h3>Recoger en el punto</h3>
+      <p>Haz tu pedido por WhatsApp y recógelo directamente en Cra 12 #14-08, Barrio Obreros, diagonal al Zuletaso.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-wrap">
+    <div>
+      <div class="brand">ASADOS<span>MTR</span></div>
+      <p>De lo mejor, de lo tradicional. Delicioso, artesanal y hecho con pasión.</p>
+      <div class="social-row">
+        <a href="https://wa.me/573243331306" target="_blank" rel="noopener" aria-label="WhatsApp">W</a>
+        <a href="https://www.instagram.com/artesanales.mtr?igsh=N2thcXBia3Bycjd4" target="_blank" rel="noopener" aria-label="Instagram">IG</a>
+      </div>
+    </div>
+    <div>
+      <h4>Contacto</h4>
+      <a href="https://wa.me/573243331306?text=Hola%2C%20quiero%20hacer%20un%20pedido" target="_blank" rel="noopener">WhatsApp: 324 333 1306</a>
+      <a href="https://www.instagram.com/artesanales.mtr?igsh=N2thcXBia3Bycjd4" target="_blank" rel="noopener">Instagram: @artesanales.mtr</a>
+    </div>
+    <div>
+      <h4>Punto de venta</h4>
+      <p>Cra 12 #14-08</p>
+      <p>Barrio Obreros, diagonal al Zuletaso</p>
+      <p>Montería, Córdoba</p>
+      <p>Abierto: 4:00 p. m. — 10:00 p. m.</p>
+    </div>
+  </div>
+  <div class="footer-bottom">Asados Artesanales MTR — Montería, Córdoba</div>
+</footer>
+
+<a class="wa-float" href="https://wa.me/573243331306?text=Hola%2C%20quiero%20hacer%20un%20pedido" target="_blank" rel="noopener" aria-label="Pedir por WhatsApp">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.96 6.45 17.5 2 12.04 2zm5.8 14.06c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.13.11-1.82-.11-.42-.13-.96-.31-1.65-.6-2.9-1.25-4.8-4.15-4.94-4.34-.14-.19-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.27-.29.58-.36.78-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.83 2 .9 2.15.07.15.12.32.02.51-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.86-1.06.18-.27.36-.22.61-.13.25.09 1.58.74 1.85.88.27.13.45.2.51.31.07.11.07.63-.17 1.31z"/></svg>
+</a>
+
+<!-- CARRITO FLOTANTE -->
+<button class="cart-float" id="cartFloatBtn" onclick="openCart()" aria-label="Ver carrito">
+  🛒 <span>Carrito</span> <span class="badge" id="cartBadge">0</span>
+</button>
+
+<!-- OVERLAY / PANEL DE PEDIDO -->
+<div class="overlay" id="overlay">
+  <div class="panel" id="panel">
+
+    <!-- PASO 1: CARRITO -->
+    <div id="step-cart">
+      <div class="panel-head">
+        <h3>Tu pedido</h3>
+        <button class="panel-close" onclick="closeOverlay()">✕</button>
+      </div>
+      <div id="cartLines"></div>
+      <div class="cart-total">
         <span>Total</span>
-        <span id="totalCarrito">$0</span>
+        <strong id="cartTotal">$0</strong>
       </div>
-      <button class="btn-confirmar" id="btnIrEntrega" onclick="irAEntrega()" style="margin-top:16px;">Continuar</button>
+      <div class="panel-actions">
+        <button class="btn btn-primary" id="continueBtn" onclick="goToStepMode()">Continuar pedido</button>
+        <button class="btn btn-ghost" onclick="closeOverlay()" style="justify-content:center;">Seguir viendo el menú</button>
+      </div>
     </div>
-  </div>
 
-  <!-- Modal: entrega -->
-  <div class="overlay" id="overlayEntrega">
-    <div class="hoja">
-      <button class="cerrar" onclick="cerrarModal('overlayEntrega')">✕</button>
-      <h2>¿Cómo quieres tu pedido?</h2>
-
-      <div class="entrega-opciones" id="opcionesEntrega">
-        <label data-valor="Recoger en el punto" class="seleccionado" onclick="elegirEntrega('Recoger en el punto')"><span>🏠 Recoger en el punto</span></label>
-        <label data-valor="Domicilio" onclick="elegirEntrega('Domicilio')"><span>🛵 Domicilio</span></label>
+    <!-- PASO 2: DOMICILIO O RECOGER -->
+    <div id="step-mode" style="display:none;">
+      <button class="form-back" onclick="goToStepCart()">← Volver al carrito</button>
+      <div class="panel-head">
+        <h3>¿Cómo quieres tu pedido?</h3>
+        <button class="panel-close" onclick="closeOverlay()">✕</button>
       </div>
+      <div class="choice-row">
+        <button class="choice-btn" onclick="chooseMode('domicilio')">
+          <span class="icon">🛵</span>
+          <span>
+            <div class="choice-title">A domicilio</div>
+            <div class="choice-desc">Te lo llevamos hasta tu casa. El costo se confirma según la zona.</div>
+          </span>
+        </button>
+        <button class="choice-btn" onclick="chooseMode('recoger')">
+          <span class="icon">🏠</span>
+          <span>
+            <div class="choice-title">Recoger en el punto</div>
+            <div class="choice-desc">Cra 12 #14-08, Barrio Obreros, diagonal al Zuletaso.</div>
+          </span>
+        </button>
+      </div>
+    </div>
 
-      <div class="campo" id="campoDireccion" style="display:none">
+    <!-- PASO 3: FORMULARIO DOMICILIO -->
+    <div id="step-domicilio" style="display:none;">
+      <button class="form-back" onclick="goToStepMode()">← Volver</button>
+      <div class="panel-head">
+        <h3>Datos para el domicilio</h3>
+        <button class="panel-close" onclick="closeOverlay()">✕</button>
+      </div>
+      <div class="form-field">
+        <label>Nombre completo</label>
+        <input type="text" id="domNombre" placeholder="Escribe tu nombre">
+      </div>
+      <div class="form-field">
         <label>Dirección de entrega</label>
-        <textarea id="direccion" rows="2" placeholder="Barrio, calle, referencia..."></textarea>
+        <textarea id="domDireccion" placeholder="Barrio, calle/carrera, número, referencia..."></textarea>
       </div>
-
-      <div class="campo">
-        <label>Nombre de quien recibe</label>
-        <input type="text" id="nombreCliente" placeholder="Tu nombre">
+      <div class="form-field">
+        <label>Método de pago</label>
+        <select id="domPago">
+          <option value="Efectivo">Efectivo</option>
+          <option value="Transferencia / Nequi / Daviplata">Transferencia / Nequi / Daviplata</option>
+          <option value="Datáfono contraentrega">Datáfono contraentrega</option>
+        </select>
       </div>
-
-      <button class="btn-confirmar" id="btnEnviar" onclick="enviarPedido()">Enviar pedido por WhatsApp</button>
-      <div class="aviso-guardado" id="avisoGuardado"></div>
+      <div class="form-error" id="domError">Por favor completa tu nombre y dirección.</div>
+      <div class="panel-actions">
+        <button class="btn btn-primary" onclick="submitDomicilio()">Enviar pedido por WhatsApp</button>
+      </div>
     </div>
+
+    <!-- PASO 3: FORMULARIO RECOGER -->
+    <div id="step-recoger" style="display:none;">
+      <button class="form-back" onclick="goToStepMode()">← Volver</button>
+      <div class="panel-head">
+        <h3>Datos para recoger en el punto</h3>
+        <button class="panel-close" onclick="closeOverlay()">✕</button>
+      </div>
+      <div class="form-field">
+        <label>Nombre completo</label>
+        <input type="text" id="recNombre" placeholder="Escribe tu nombre">
+      </div>
+      <div class="form-field">
+        <label>Método de pago</label>
+        <select id="recPago">
+          <option value="Efectivo">Efectivo</option>
+          <option value="Transferencia / Nequi / Daviplata">Transferencia / Nequi / Daviplata</option>
+          <option value="Datáfono en el punto">Datáfono en el punto</option>
+        </select>
+      </div>
+      <div class="form-error" id="recError">Por favor escribe tu nombre.</div>
+      <div class="panel-actions">
+        <button class="btn btn-primary" onclick="submitRecoger()">Enviar pedido por WhatsApp</button>
+      </div>
+    </div>
+
   </div>
+</div>
 
 <script>
-  // ---------- Catálogo ----------
-  // Puedes cambiar "imagen" por la URL de tu propia foto (ver instrucciones
-  // al final del mensaje de Claude sobre cómo subir tus fotos).
-  const productos = [
-    { id:'picada_peq', nombre:'Picada de chorizo pequeña', precio:7000,  categoria:'Picadas de chorizo',
-      imagen:'https://placehold.co/200x200/e0651a/ffffff?text=Picada+Peque%C3%B1a' },
-    { id:'picada_med', nombre:'Picada de chorizo mediana',  precio:14000, categoria:'Picadas de chorizo',
-      imagen:'https://placehold.co/200x200/e0651a/ffffff?text=Picada+Mediana' },
-    { id:'picada_gra', nombre:'Picada de chorizo grande',   precio:24000, categoria:'Picadas de chorizo',
-      imagen:'https://placehold.co/200x200/e0651a/ffffff?text=Picada+Grande' },
-    { id:'pincho_cerdo', nombre:'Pincho de cerdo', precio:8000, categoria:'Pinchos',
-      imagen:'https://placehold.co/200x200/b84e10/ffffff?text=Pincho+Cerdo' },
-    { id:'pincho_res',   nombre:'Pincho de res',   precio:8000, categoria:'Pinchos',
-      imagen:'https://placehold.co/200x200/b84e10/ffffff?text=Pincho+Res' },
-    { id:'culata_cerdo', nombre:'Culata de cerdo', precio:12000, categoria:'Culatas',
-      imagen:'https://placehold.co/200x200/8a3d0f/ffffff?text=Culata+Cerdo' }
-  ];
+  const WHATSAPP_NUMBER = "573243331306";
+  let cart = {}; // { name: { price, qty } }
 
-  const NUMERO_WHATSAPP = '573192548485'; // +57 319 254 8485 sin signos ni espacios
-
-  let carrito = [];       // {id, nombre, precio, cantidad, acompanante}
-  let productoTemporal = null;
-  let cantidadTemporal = 1;
-  let acompananteTemporal = 'Ninguno';
-  let entregaTemporal = 'Recoger en el punto';
-
-  function formatoPesos(valor){
-    return '$' + valor.toLocaleString('es-CO');
+  function formatCOP(n){
+    return "$" + n.toLocaleString("es-CO");
   }
 
-  // ---------- Render catálogo ----------
-  function renderCatalogo(){
-    const cont = document.getElementById('catalogo');
-    cont.innerHTML = '';
-    const categorias = [...new Set(productos.map(p => p.categoria))];
-
-    categorias.forEach(cat => {
-      const titulo = document.createElement('div');
-      titulo.className = 'categoria';
-      titulo.textContent = cat;
-      cont.appendChild(titulo);
-
-      productos.filter(p => p.categoria === cat).forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'producto';
-        div.innerHTML = `
-          <img src="${p.imagen}" alt="${p.nombre}">
-          <div class="producto-info">
-            <b>${p.nombre}</b>
-            <span>${formatoPesos(p.precio)}</span>
-          </div>
-          <button class="btn-agregar" onclick="abrirModalProducto('${p.id}')">Agregar</button>
-        `;
-        cont.appendChild(div);
-      });
-    });
+  function addToCart(btn){
+    const item = btn.closest(".item");
+    const name = item.dataset.name;
+    const price = parseInt(item.dataset.price, 10);
+    if(!cart[name]) cart[name] = { price, qty: 0 };
+    cart[name].qty += 1;
+    updateCartUI();
+    btn.textContent = "Agregado ✓";
+    btn.classList.add("added");
+    setTimeout(() => { btn.textContent = "Agregar"; btn.classList.remove("added"); }, 900);
   }
 
-  // ---------- Modal producto ----------
-  function abrirModalProducto(id){
-    productoTemporal = productos.find(p => p.id === id);
-    cantidadTemporal = 1;
-    acompananteTemporal = 'Ninguno';
-
-    document.getElementById('imagenProducto').src = productoTemporal.imagen;
-    document.getElementById('tituloProducto').textContent =
-      productoTemporal.nombre + ' - ' + formatoPesos(productoTemporal.precio);
-    document.getElementById('cantidadActual').textContent = cantidadTemporal;
-
-    document.querySelectorAll('#opcionesAcomp label').forEach(lbl => {
-      lbl.classList.toggle('seleccionado', lbl.dataset.valor === 'Ninguno');
-    });
-
-    abrirModal('overlayProducto');
+  function changeQty(name, delta){
+    if(!cart[name]) return;
+    cart[name].qty += delta;
+    if(cart[name].qty <= 0) delete cart[name];
+    updateCartUI();
   }
 
-  function elegirAcompanante(valor){
-    acompananteTemporal = valor;
-    document.querySelectorAll('#opcionesAcomp label').forEach(lbl => {
-      lbl.classList.toggle('seleccionado', lbl.dataset.valor === valor);
-    });
+  function removeFromCart(name){
+    delete cart[name];
+    updateCartUI();
   }
 
-  function cambiarCantidad(delta){
-    cantidadTemporal = Math.max(1, cantidadTemporal + delta);
-    document.getElementById('cantidadActual').textContent = cantidadTemporal;
+  function cartCount(){
+    return Object.values(cart).reduce((sum, l) => sum + l.qty, 0);
   }
 
-  function confirmarAgregar(){
-    carrito.push({
-      id: productoTemporal.id,
-      nombre: productoTemporal.nombre,
-      precio: productoTemporal.precio,
-      cantidad: cantidadTemporal,
-      acompanante: acompananteTemporal
-    });
-    cerrarModal('overlayProducto');
-    actualizarBarraCarrito();
+  function cartTotalValue(){
+    return Object.values(cart).reduce((sum, l) => sum + l.qty * l.price, 0);
   }
 
-  // ---------- Carrito ----------
-  function actualizarBarraCarrito(){
-    const barra = document.getElementById('barraCarrito');
-    if (carrito.length === 0){
-      barra.style.display = 'none';
-      return;
-    }
-    barra.style.display = 'flex';
-    const totalItems = carrito.reduce((s, i) => s + i.cantidad, 0);
-    const total = calcularTotal();
-    document.getElementById('resumenBarra').textContent = totalItems + (totalItems === 1 ? ' producto' : ' productos');
-    document.getElementById('totalBarra').textContent = formatoPesos(total);
-  }
-
-  function calcularTotal(){
-    return carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
-  }
-
-  function renderCarrito(){
-    const cont = document.getElementById('listaCarrito');
-    if (carrito.length === 0){
-      cont.innerHTML = '<div class="vacio">Tu carrito está vacío</div>';
-      document.getElementById('btnIrEntrega').disabled = true;
+  function updateCartUI(){
+    document.getElementById("cartBadge").textContent = cartCount();
+    const linesDiv = document.getElementById("cartLines");
+    const entries = Object.entries(cart);
+    if(entries.length === 0){
+      linesDiv.innerHTML = '<div class="cart-empty">Tu carrito está vacío. Agrega productos del menú.</div>';
     } else {
-      cont.innerHTML = '';
-      carrito.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'item-carrito';
-        div.innerHTML = `
-          <div class="desc">
-            <b>${item.cantidad} x ${item.nombre}</b>
-            <span>Con: ${item.acompanante} · ${formatoPesos(item.precio * item.cantidad)}</span>
+      linesDiv.innerHTML = entries.map(([name, l]) => `
+        <div class="cart-line">
+          <div>
+            <div class="cart-line-name">${name}</div>
+            <div class="cart-line-price">${formatCOP(l.price)} c/u</div>
+            <button class="cart-line-remove" onclick="removeFromCart('${name.replace(/'/g, "\\'")}')">Quitar</button>
           </div>
-          <button class="quitar" onclick="quitarDelCarrito(${idx})">Quitar</button>
-        `;
-        cont.appendChild(div);
-      });
-      document.getElementById('btnIrEntrega').disabled = false;
+          <div class="qty-stepper">
+            <button onclick="changeQty('${name.replace(/'/g, "\\'")}', -1)">−</button>
+            <span>${l.qty}</span>
+            <button onclick="changeQty('${name.replace(/'/g, "\\'")}', 1)">+</button>
+          </div>
+        </div>
+      `).join("");
     }
-    document.getElementById('totalCarrito').textContent = formatoPesos(calcularTotal());
+    document.getElementById("cartTotal").textContent = formatCOP(cartTotalValue());
+    document.getElementById("continueBtn").disabled = entries.length === 0;
+    document.getElementById("continueBtn").style.opacity = entries.length === 0 ? "0.5" : "1";
   }
 
-  function quitarDelCarrito(idx){
-    carrito.splice(idx, 1);
-    renderCarrito();
-    actualizarBarraCarrito();
+  function openCart(){
+    document.getElementById("overlay").classList.add("open");
+    showStep("step-cart");
   }
 
-  function abrirCarrito(){
-    renderCarrito();
-    abrirModal('overlayCarrito');
+  function closeOverlay(){
+    document.getElementById("overlay").classList.remove("open");
   }
 
-  function irAEntrega(){
-    if (carrito.length === 0) return;
-    cerrarModal('overlayCarrito');
-    abrirModal('overlayEntrega');
-  }
-
-  // ---------- Entrega ----------
-  function elegirEntrega(valor){
-    entregaTemporal = valor;
-    document.querySelectorAll('#opcionesEntrega label').forEach(lbl => {
-      lbl.classList.toggle('seleccionado', lbl.dataset.valor === valor);
+  function showStep(id){
+    ["step-cart","step-mode","step-domicilio","step-recoger"].forEach(s => {
+      document.getElementById(s).style.display = (s === id) ? "block" : "none";
     });
-    document.getElementById('campoDireccion').style.display = (valor === 'Domicilio') ? 'block' : 'none';
   }
 
-  function enviarPedido(){
-    const direccion = document.getElementById('direccion').value.trim();
-    const nombre = document.getElementById('nombreCliente').value.trim();
+  function goToStepCart(){ showStep("step-cart"); }
+  function goToStepMode(){
+    if(cartCount() === 0) return;
+    showStep("step-mode");
+  }
+  function chooseMode(mode){
+    showStep(mode === "domicilio" ? "step-domicilio" : "step-recoger");
+  }
 
-    if (entregaTemporal === 'Domicilio' && direccion === ''){
-      alert('Por favor escribe la dirección de entrega.');
+  function buildOrderText(){
+    let lines = Object.entries(cart).map(([name, l]) => `• ${l.qty} x ${name} — ${formatCOP(l.qty * l.price)}`);
+    return lines.join("\n") + `\n\nTotal: ${formatCOP(cartTotalValue())}`;
+  }
+
+  function submitDomicilio(){
+    const nombre = document.getElementById("domNombre").value.trim();
+    const direccion = document.getElementById("domDireccion").value.trim();
+    const pago = document.getElementById("domPago").value;
+    if(!nombre || !direccion){
+      document.getElementById("domError").classList.add("show");
       return;
     }
-    if (nombre === ''){
-      alert('Por favor escribe tu nombre.');
+    document.getElementById("domError").classList.remove("show");
+    const msg =
+`Hola, quiero hacer un pedido a domicilio:
+
+${buildOrderText()}
+
+Nombre: ${nombre}
+Dirección: ${direccion}
+Método de pago: ${pago}`;
+    sendToWhatsApp(msg);
+  }
+
+  function submitRecoger(){
+    const nombre = document.getElementById("recNombre").value.trim();
+    const pago = document.getElementById("recPago").value;
+    if(!nombre){
+      document.getElementById("recError").classList.add("show");
       return;
     }
+    document.getElementById("recError").classList.remove("show");
+    const msg =
+`Hola, quiero hacer un pedido para recoger en el punto:
 
-    const total = calcularTotal();
+${buildOrderText()}
 
-    // Armar mensaje de WhatsApp
-    let mensaje = `🛒 *Nuevo pedido*\n\n`;
-    mensaje += `*Cliente:* ${nombre}\n\n`;
-    mensaje += `*Productos:*\n`;
-    carrito.forEach(item => {
-      mensaje += `• ${item.cantidad} x ${item.nombre} (con ${item.acompanante}) - ${formatoPesos(item.precio * item.cantidad)}\n`;
-    });
-    mensaje += `\n*Total: ${formatoPesos(total)}*\n\n`;
-    mensaje += `*Entrega:* ${entregaTemporal}\n`;
-    if (entregaTemporal === 'Domicilio'){
-      mensaje += `*Dirección:* ${direccion}\n`;
-    }
-
-    // Abrir WhatsApp de inmediato (debe ser síncrono para que el navegador
-    // no bloquee la ventana emergente)
-    const url = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank');
-
-    // Guardar el registro de la venta en la hoja de cálculo (en segundo plano)
-    const btn = document.getElementById('btnEnviar');
-    const aviso = document.getElementById('avisoGuardado');
-    btn.disabled = true;
-    aviso.textContent = 'Guardando pedido...';
-
-    const datosPedido = {
-      cliente: nombre,
-      tipoEntrega: entregaTemporal,
-      direccion: entregaTemporal === 'Domicilio' ? direccion : '-',
-      productos: carrito,
-      total: total
-    };
-
-    google.script.run
-      .withSuccessHandler(function(){
-        aviso.textContent = '✔ Pedido guardado correctamente';
-        btn.disabled = false;
-        // Reiniciar todo después de enviar
-        carrito = [];
-        actualizarBarraCarrito();
-        setTimeout(function(){
-          cerrarModal('overlayEntrega');
-          aviso.textContent = '';
-          document.getElementById('direccion').value = '';
-          document.getElementById('nombreCliente').value = '';
-        }, 1200);
-      })
-      .withFailureHandler(function(error){
-        aviso.textContent = '⚠ No se pudo guardar el registro, pero el pedido ya se envió por WhatsApp.';
-        btn.disabled = false;
-        console.error(error);
-      })
-      .guardarVenta(datosPedido);
+Nombre: ${nombre}
+Método de pago: ${pago}`;
+    sendToWhatsApp(msg);
   }
 
-  // ---------- Utilidades modal ----------
-  function abrirModal(id){
-    document.getElementById(id).classList.add('activo');
-  }
-  function cerrarModal(id){
-    document.getElementById(id).classList.remove('activo');
+  function sendToWhatsApp(msg){
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+    cart = {};
+    updateCartUI();
+    closeOverlay();
   }
 
-  renderCatalogo();
+  updateCartUI();
 </script>
 
 </body>
